@@ -655,6 +655,24 @@ section {
 /* 4. Hover - Μια ανεπαίσθητη αύξηση της φωτεινότητας */
 .industry-card:hover {
     background: rgba(255, 255, 255, 0.07);
+
+    /* Διασφάλιση ότι το βίντεο είναι ορατό */
+.video-background-container {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Επιβολή διαφάνειας σε όλα τα επίπεδα στα κινητά */
+body, html, main, section, .page-content {
+    background-color: transparent !important;
+}
+
+/* Αν κάποιο section έχειnth-child(odd) background, το ακυρώνουμε */
+section:nth-child(odd), section:nth-child(even) {
+    background-color: transparent !important;
+}
     border-color: rgba(0, 247, 181, 0.4);
     transform: translateX(10px); /* Αντί να ανεβαίνει, γλιστράει ελαφρώς δεξιά */
 }
+
