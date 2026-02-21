@@ -186,11 +186,36 @@ function closeViewer() {
 
 // 4. Video Scroll & Form
 const vid = document.getElementById('scrub-video');
-window.addEventListener('scroll', () => {
-    const scrollFraction = window.scrollY / (document.body.offsetHeight - window.innerHeight);
-    if (vid.duration) vid.currentTime = vid.duration * Math.min(0.99, scrollFraction);
-});
 
+// Έλεγχος αν η συσκευή είναι κινητό ή tablet
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+if (vid) {
+    if (!isMobile) {
+        // --- ΛΟΓΙΚΗ ΓΙΑ DESKTOP: Το βίντεο ακολουθεί το scroll ---
+        vid.pause(); // Σταματάμε το αυτόματο παίξιμο για να το ελέγχει το scroll
+
+        window.addEventListener('scroll', () => {
+            const scrollPos = window.scrollY;
+            const totalHeight = document.body.offsetHeight - window.innerHeight;
+            // Υπολογισμός ποσοστού (0 έως 1)
+            const scrollFraction = scrollPos / totalHeight;
+
+            if (vid.duration) {
+                // Χρησιμοποιούμε Math.min(0.99) για να μην "τερματίσει" το βίντεο και κολλήσει
+                vid.currentTime = vid.duration * Math.min(0.99, Math.max(0, scrollFraction));
+            }
+        });
+    } else {
+        // --- ΛΟΓΙΚΗ ΓΙΑ ΚΙΝΗΤΑ: Το βίντεο παίζει κανονικά σε loop ---
+        // Στα κινητά το scrubbing (πήγαινε-έλα) είναι βαρύ, οπότε το αφήνουμε να παίζει μόνο του
+        vid.play().catch(error => {
+            console.log("Autoplay prevented on mobile. User interaction might be needed.");
+        });
+    }
+}
+
+// Διαχείριση Φόρμας Επικοινωνίας
 const contactForm = document.getElementById("contact-form");
 if (contactForm) {
     contactForm.addEventListener("submit", function(e) {
@@ -205,12 +230,20 @@ if (contactForm) {
             headers: { 'Accept': 'application/json' }
         }).then(response => {
             if (response.ok) {
+                // Εμφάνιση μηνύματος επιτυχίας στη γλώσσα που έχει επιλεγεί
                 status.innerText = translations[currentLang].form_success;
                 status.style.color = "#00f7b5";
                 contactForm.reset();
             } else {
                 status.innerText = translations[currentLang].form_error;
+                status.style.color = "#ff4d4d";
             }
-        }).finally(() => { btn.disabled = false; });
+        }).catch(() => {
+            status.innerText = translations[currentLang].form_error;
+            status.style.color = "#ff4d4d";
+        }).finally(() => {
+            btn.disabled = false;
+        });
     });
+}
 }
