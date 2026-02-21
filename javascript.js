@@ -186,31 +186,26 @@ function closeViewer() {
 
 // 4. Video Scroll & Form
 const vid = document.getElementById('scrub-video');
-window.addEventListener('scroll', () => {
-    const scrollFraction = window.scrollY / (document.body.offsetHeight - window.innerHeight);
-    if (vid.duration) vid.currentTime = vid.duration * Math.min(0.99, scrollFraction);
+
+// Λειτουργία συγχρονισμού
+function scrollVideo() {
+    if (vid.duration) {
+        const distanceFromTop = window.scrollY;
+        const totalScrollableMax = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollFraction = distanceFromTop / totalScrollableMax;
+        
+        // Χρησιμοποιούμε Math.min/max για να μην βγει εκτός ορίων (0 έως 0.99)
+        const targetTime = vid.duration * Math.min(0.99, Math.max(0, scrollFraction));
+        vid.currentTime = targetTime;
+    }
+    requestAnimationFrame(scrollVideo);
+}
+
+// Ξεκινάει τη διαδικασία μόνο όταν το βίντεο είναι έτοιμο
+vid.addEventListener('loadedmetadata', () => {
+    requestAnimationFrame(scrollVideo);
 });
 
-const contactForm = document.getElementById("contact-form");
-if (contactForm) {
-    contactForm.addEventListener("submit", function(e) {
-        e.preventDefault();
-        const status = document.getElementById("form-status");
-        const btn = document.getElementById("submit-button");
-        btn.disabled = true;
-
-        fetch(contactForm.action, {
-            method: 'POST',
-            body: new FormData(contactForm),
-            headers: { 'Accept': 'application/json' }
-        }).then(response => {
-            if (response.ok) {
-                status.innerText = translations[currentLang].form_success;
-                status.style.color = "#00f7b5";
-                contactForm.reset();
-            } else {
-                status.innerText = translations[currentLang].form_error;
-            }
-        }).finally(() => { btn.disabled = false; });
-    });
-}
+// Force load για κινητά
+vid.load();
+vid.pause();
